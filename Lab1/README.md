@@ -1,3 +1,9 @@
 #Assembly
 
 To build the body of the Alphabot2-pi, the diagrams found in this slide pack:https://www.waveshare.com/w/upload/1/1a/Alphabot2-pi-assembly-diagram-en.pdf. The camera step was skipped and before attaching the top of the bot to the base, the SD card was uploaded with a Raspbian OS from the Raspberry Pi imager. The bootloader was also uploaded to the card, but eventually the card was reflashed and the bootloader was not loaded onto it again. Then the top was attached to the base.
+
+Something about initial programming
+
+
+Once the initial program was completed, the real fun commenced. First getting a feel for the amount of time it took to turn and go half a meter was important, as the times got down to below 1. Then it was important to figure out how the bot was veering in it's lines to adjust the motor. I noticed that the momentum between going forward and turning was causing the bot to do weird things (at one point going in a circle for two of the sides rather than straight), so I put a sleep between turning and forward. It also helped me figure out what was happening as well, namely that our bot, ALF (name pending), seems to take more time to stop on the right motor and was presumably more powerful than the left. So, I adjusted the motor to be more powerful on the left to help correct it and then for the bot to take more time to turn.
+Then it got really crazy, because during all of this adjusting I also realized that certain turns were obtuse and certain turns were acute, although they all had the same time! Originally we had a program that ran each side and so we would call that 4 times, but knowing I would have to tune each individual turn, I copied the program 4 times and then threw the side() program out. With more tuning and also considering placement on the floor (which also factored in, unfortunately) ALF was able to drive in a square!
