@@ -35,8 +35,8 @@ class botPosition:
         self.position, self.sensors = self.TR.readLine()
 
     def sensorValues(self):
-        #self.sensors = self.TR.readCalibrated()
-        self.sensors = self.TR.AnalogRead()
+        self.sensors = self.TR.readCalibrated()
+        #self.sensors = self.TR.AnalogRead()
         return self.sensors
 
 
