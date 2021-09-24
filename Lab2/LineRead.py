@@ -45,32 +45,18 @@ class botPosition:
         return (self.position-2000)
 
 
-def my_raw_input(stdscr, r, c, prompt_string): #I grabbed this function from stack overflow https://stackoverflow.com/questions/21784625/how-to-input-a-word-in-ncurses-screen
-    curses.echo() 
-    stdscr.addstr(r, c, prompt_string)
-    stdscr.refresh()
-    input = stdscr.getstr(r + 1, c, 20)
-    return input
- 
-def overscoreString(string):
-   newString = ""
-   for char in string:
-      newString += "u'"+char+"\u0305'"  
-   retString = ""
-   for i in newString:
-      if i != 'u' and i != "'":
-         retString += i
-   return retString
-
 def getRobotPosition(pos, lastString):
    retString = ""
    div = 10
    incr = 4000/div
-   for i in range(0, (div-1)):
-      if (2000-(incr*i))>pos and pos>(2000-(incr*(i+1))):
-         retString += "O"
+   total = incr
+   for i in range(0, div):
+      if total > pos:
+         retString += "O"+("_"*(div- i - 1))
+         break
       else:
          retString += "_"
+         total += incr
    if "O" in retString:
       return retString
    else:
@@ -85,14 +71,17 @@ def main(stdscr):
    # stdscr.keypad(True)
     
     values = [0,0,0,0,0]
-    freq = 1
+    freq = 3
     bot = botPosition()
     posString = " "
 
     while True:
 
         stdscr.erase()
-
+        
+        values = bot.sensorValues()
+        pos = bot.getPosition()
+        
         max_y, max_x = stdscr.getmaxyx()
         max_y-=9 #3 lines for more info
         max_x-=1
@@ -102,11 +91,6 @@ def main(stdscr):
         newFreqLine = max_y+6
 
         bin_width = int(max_x//len(values))
-
-        #for i in range(len(values)):
-        #   values[i] += random.randint(0,10)
-        values = bot.sensorValues()
-        pos = bot.getPosition()
 
         stdscr.addstr(max_y,0, "_"*max_x)
 
@@ -135,16 +119,6 @@ def main(stdscr):
         stdscr.addstr(computedCenterLine,0, "Robot Computed Center Position: ")
         time.sleep((1/freq))
         stdscr.refresh()
-
-      #  key = stdscr.getch()
-
-        # Process the keystroke
-   #     if key == curses.KEY_RIGHT:
-    #        continue
-       # if key == ord('f'): #typing f promts for new frequency
-        #   freq = str(int(my_raw_input(stdscr, newFreqLine, 0, "new freq?")))
-       # elif key == ord('q'):
-       #     break
 
 curses.wrapper(main)
 
