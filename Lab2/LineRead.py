@@ -28,7 +28,7 @@ class botPosition:
                 self.Ab.left()
                 self.Ab.setPWMA(30)
                 self.Ab.setPWMB(30)
-        self.TR.calibrate()
+            self.TR.calibrate()
         self.Ab.stop()
 
         self.TR.calibrate()
@@ -49,7 +49,7 @@ def getRobotPosition(pos, lastString):
    retString = ""
    div = 10
    incr = 4000/div
-   total = incr
+   total = -2000+incr
    for i in range(0, div):
       if total > pos:
          retString += "O"+("_"*(div- i - 1))
@@ -71,7 +71,7 @@ def main(stdscr):
    # stdscr.keypad(True)
     
     values = [0,0,0,0,0]
-    freq = 3
+    freq = 1
     bot = botPosition()
     posString = " "
 
@@ -79,9 +79,9 @@ def main(stdscr):
 
         stdscr.erase()
         
-        values = bot.sensorValues()
         pos = bot.getPosition()
-        
+        values = bot.sensors
+
         max_y, max_x = stdscr.getmaxyx()
         max_y-=9 #3 lines for more info
         max_x-=1
@@ -116,7 +116,7 @@ def main(stdscr):
         posString = getRobotPosition(pos, posString)
         stdscr.addstr(positionLine,0, "Robot Relative to line: "+posString)
         
-        stdscr.addstr(computedCenterLine,0, "Robot Computed Center Position: ")
+        stdscr.addstr(computedCenterLine,0, "Robot Computed Center Position: "+str(pos))
         time.sleep((1/freq))
         stdscr.refresh()
 
