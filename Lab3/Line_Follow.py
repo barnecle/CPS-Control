@@ -101,7 +101,7 @@ while True:
         // the proportional, integral, and derivative terms are multiplied to
         // improve performance.
         '''
-        power_difference = proportional/35 + derivative*3 +integral/7000;
+        power_difference = proportional/35 + derivative*3.5 +integral/9000;
 
         if (power_difference > maximum):
             power_difference = maximum
