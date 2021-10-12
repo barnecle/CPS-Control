@@ -48,6 +48,11 @@ def Wheel(pos):
 #strip.setPixelColor(3, Color(100, 100, 0))     #Yellow
 #strip.show()
 
+
+P_coef = 1/35
+I_coef = 1/9000
+D_coef = 3.5
+
 TR = TRSensor()
 Ab = AlphaBot2()
 Ab.stop()
@@ -72,6 +77,10 @@ while (GPIO.input(Button) != 0):
     time.sleep(0.05)
 Ab.forward()
 
+file = open("P_"+str(P_coef)+"__I_"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
+file.write("iteration, error, time, P-term, I-term, D-term, left PWM, right PWM\n")
+start_time = time.time()*(10**9)
+
 while True:
     position,Sensors = TR.readLine()
     print(position-2000)
@@ -92,6 +101,10 @@ while True:
 		# Remember the last position.
         last_proportional = proportional
 
+        P = proportional*P_coef
+        I = integral*I_coef
+        D = derivative*D_coef
+
         '''
         // Compute the difference between the two motor power settings,
         // m1 - m2.  If this is a positive number the robot will turn
@@ -101,7 +114,7 @@ while True:
         // the proportional, integral, and derivative terms are multiplied to
         // improve performance.
         '''
-        power_difference = proportional/35 + derivative*3.5 +integral/9000;
+        power_difference = P + I + D;
 
         if (power_difference > maximum):
             power_difference = maximum
@@ -111,17 +124,23 @@ while True:
         if (power_difference < 0):
             Ab.setPWMA(maximum + power_difference)
             Ab.setPWMB(maximum);
-           # pwm_L = maximum + power_difference
-           # pwm_R = maximum
+            pwm_L = maximum + power_difference
+            pwm_R = maximum
         else:
             Ab.setPWMA(maximum);
             Ab.setPWMB(maximum - power_difference)
+            pwm_L = maximum
+            pwm_R = maximum - power_difference
+        if i < 1000:
+            file.write(str(i) +", " + str(proportional)+", "+str(time.time()*(10**9)-start_time)+", "+ str(P) +", "+ str(I)+", "+ str(D)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n")
 		   # pwm_L = maximum
            # pwm_R = maximum + power_difference
-        
+        if GPIO.input(Button) != 0:
+            break
 #	for i in range(0,strip.numPixels()):
 #		strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255))
 #	strip.show();
 #	j += 1
 #	if(j > 256*4): 
 #		j= 0
+file.close()
