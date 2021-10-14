@@ -49,8 +49,8 @@ def Wheel(pos):
 #strip.show()
 
 
-P_coef = 1/35
-I_coef = 1/9000
+P_coef = 35
+I_coef = 9000
 D_coef = 3.5
 
 TR = TRSensor()
@@ -75,11 +75,14 @@ while (GPIO.input(Button) != 0):
     position,Sensors = TR.readLine()
     print(position,Sensors)
     time.sleep(0.05)
+time.sleep(1)
 Ab.forward()
 
-file = open("P_"+str(P_coef)+"__I_"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
+file = open("P_1/"+str(P_coef)+"__I_1/"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
 file.write("iteration, error, time, P-term, I-term, D-term, left PWM, right PWM\n")
 start_time = time.time()*(10**9)
+
+i = 0
 
 while True:
     position,Sensors = TR.readLine()
@@ -101,8 +104,8 @@ while True:
 		# Remember the last position.
         last_proportional = proportional
 
-        P = proportional*P_coef
-        I = integral*I_coef
+        P = proportional*(1.0/P_coef)
+        I = integral*(1.0/I_coef)
         D = derivative*D_coef
 
         '''
@@ -131,12 +134,13 @@ while True:
             Ab.setPWMB(maximum - power_difference)
             pwm_L = maximum
             pwm_R = maximum - power_difference
-        if i < 1000:
+        if i < 2000:
             file.write(str(i) +", " + str(proportional)+", "+str(time.time()*(10**9)-start_time)+", "+ str(P) +", "+ str(I)+", "+ str(D)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n")
 		   # pwm_L = maximum
            # pwm_R = maximum + power_difference
         if GPIO.input(Button) != 0:
             break
+        i+=1
 #	for i in range(0,strip.numPixels()):
 #		strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255))
 #	strip.show();
