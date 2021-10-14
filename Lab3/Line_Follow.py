@@ -80,11 +80,12 @@ Ab.forward()
 
 file = open("P_1/"+str(P_coef)+"__I_1/"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
 file.write("iteration, error, time, P-term, I-term, D-term, left PWM, right PWM\n")
-start_time = time.time()*(10**9)
-
+start_time = time.time()*(10**6) #micro seconds
+file_array = []
 i = 0
 
 while True:
+    start_code_time = time.time()*(10**6)
     position,Sensors = TR.readLine()
     print(position-2000)
     if(Sensors[0] >900 and Sensors[1] >900 and Sensors[2] >900 and Sensors[3] >900 and Sensors[4] >900):
@@ -117,6 +118,7 @@ while True:
         // the proportional, integral, and derivative terms are multiplied to
         // improve performance.
         '''
+
         power_difference = P + I + D;
 
         if (power_difference > maximum):
@@ -135,16 +137,16 @@ while True:
             pwm_L = maximum
             pwm_R = maximum - power_difference
         if i < 2000:
-            file.write(str(i) +", " + str(proportional)+", "+str(time.time()*(10**9)-start_time)+", "+ str(P) +", "+ str(I)+", "+ str(D)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n")
+            file_array += [str(i) +", " + str(proportional)+", "+str(time.time()*(10**6)-start_time)+", "+ str(P) +", "+ str(I)+", "+ str(D)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n"]
+            #file.write(str(i) +", " + str(proportional)+", "+str(time.time()*(10**9)-start_time)+", "+ str(P) +", "+ str(I)+", "+ str(D)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n")
 		   # pwm_L = maximum
            # pwm_R = maximum + power_difference
         if GPIO.input(Button) != 0:
             break
         i+=1
-#	for i in range(0,strip.numPixels()):
-#		strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255))
-#	strip.show();
-#	j += 1
-#	if(j > 256*4): 
-#		j= 0
+        end_code_time = time.time()*(10**6)
+        time.sleep((2500.0-(end_code_time-start_code_time))/(10**6)) #sleep so that every iteration is 2500 us
+
+for i in file_array:
+    file.write(i)
 file.close()
