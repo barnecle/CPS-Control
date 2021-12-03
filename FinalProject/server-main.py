@@ -38,7 +38,7 @@ if __name__ == '__main__':
         ret, img = cam.read()
 		gray_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 		corners, ids, rejected_corners = cv2.aruco.detectMarkers(gray_frame, aruco_dictionary, parameters=parameters)
-		img = cv2.aruco.drawDetectedMarkers(image=img, corners=corners, ids=ids, borderColor=(0, 255, 0))
+		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=corners, ids=ids, borderColor=(0, 255, 0))
 		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=rejected_corners, borderColor=(0, 0, 255))
 		#cv2.imshow('frame', frame)
 		if ids is not None:
