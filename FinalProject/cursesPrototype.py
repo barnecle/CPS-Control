@@ -1,6 +1,6 @@
 #import RPi.GPIO as GPIO
 #import time
-#from AlphaBot2 import AlphaBot2
+from AlphaBot2 import AlphaBot2
 import curses
 
 
