@@ -1,6 +1,6 @@
 #import RPi.GPIO as GPIO
 #import time
-#from AlphaBot2 import AlphaBot2
+from python.AlphaBot2 import AlphaBot2
 import curses
 
 
@@ -15,16 +15,16 @@ def main(stdscr):
       stdscr.erase()
       key = stdscr.getch()
       if key == ord('w'):
-         Ab.forward();
+         Ab.forward_slow();
          print("up")
       elif key == ord('a'):
-         Ab.left();
+         Ab.left_slow();
          print("left")
       elif key == ord('s'):
-         Ab.backward();
+         Ab.backward_slow();
          print("backward")
       elif key == ord('d'):
-         Ab.right();
+         Ab.right_slow();
          print("right")
       elif key == ord(' '):
          Ab.stop();
