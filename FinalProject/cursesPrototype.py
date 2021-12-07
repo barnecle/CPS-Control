@@ -1,6 +1,10 @@
 #import RPi.GPIO as GPIO
 #import time
+<<<<<<< HEAD
 from python.AlphaBot2 import AlphaBot2
+=======
+from AlphaBot2 import AlphaBot2
+>>>>>>> 52340f3c254b573e0c7916df985593e9e9616001
 import curses
 
 
