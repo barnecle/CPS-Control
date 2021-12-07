@@ -6,7 +6,7 @@ import pickle
 import os
 import time
 
-from AlphaBot2 import AlphaBot2
+from Alphabot2 import AlphaBot2
 import curses
 
 
