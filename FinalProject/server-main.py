@@ -108,8 +108,8 @@ if __name__ == '__main__':
             toRedis(r, img, 'latest',count)
             count += 1
             print(count)
-         error_x = tvec[0][0]
-         error_z = tvec[0][2] - target_distance
+         error_x = tvecs[0][0]
+         error_z = tvecs[0][2] - target_distance
          
          derivative_x = error_x - last_error_x
          integral_x += error_x
