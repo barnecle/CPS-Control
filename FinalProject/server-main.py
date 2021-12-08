@@ -108,8 +108,8 @@ if __name__ == '__main__':
             toRedis(r, img, 'latest',count)
             count += 1
             print(count)
-         error_x = tvecs[0][0]
-         error_z = tvecs[0][2] - target_distance
+         error_x = tvecs[0][0][0]
+         error_z = tvecs[0][0][2] - target_distance
          
          derivative_x = error_x - last_error_x
          integral_x += error_x
@@ -121,11 +121,13 @@ if __name__ == '__main__':
          d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
          
          speed += d_speed
-         
+         print("speed ", speed)
+         print("pwr diff ", power_difference)         
+
          if (speed > maximum_speed):
             speed = maximum_speed
          if (speed < 0):
-            d_maximum_speed = 0
+            speed = 0
          
          if power_difference > speed:
             power_difference = speed
@@ -142,5 +144,5 @@ if __name__ == '__main__':
          last_error_z = error_z
             
          code_time = time.time() - start_code_time
-         print(code_time)
-         time.sleep(0.008-code_time)
+         print("time " + str(code_time))
+        # time.sleep(0.008-code_time)
