@@ -7,10 +7,31 @@ import os
 import time
 
 from Alphabot2 import AlphaBot2
+import RPi.GPIO as GPIO
 import curses
 
 
 Ab = AlphaBot2()
+
+TRIG = 22
+ECHO = 27
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(TRIG,GPIO.OUT,initial=GPIO.LOW)
+GPIO.setup(ECHO,GPIO.IN)
+
+def Distance():
+	GPIO.output(TRIG,GPIO.HIGH)
+	time.sleep(0.000015)
+	GPIO.output(TRIG,GPIO.LOW)
+	while not GPIO.input(ECHO):
+		pass
+	t1 = time.time()
+	while GPIO.input(ECHO):
+		pass
+	t2 = time.time()
+	return (t2-t1)*34000/2
+
 
 def main(stdscr):
    Ab.setPWMA(10)
@@ -61,7 +82,7 @@ if __name__ == '__main__':
    cam.set(4, 240)
    key = 0
    count = 0
-   target_distance = 0.5
+   target_distance = 5
    error_x = 0
    error_z = 0
    last_error_x = error_x
@@ -102,26 +123,28 @@ if __name__ == '__main__':
             midPoint = (corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0])/4
          
          error_x = midPoint - 160
-       #  error_z = tvecs[0][0][2] - target_distance
+         if(error_x > -5 or error_x <5):
+            error_x = 0
+         error_z = Distance() - target_distance
          
          derivative_x = error_x - last_error_x
          integral_x += error_x
          
-       #  derivative_z = error_z - last_error_z
-       #  integral_z += error_z
+         derivative_z = error_z - last_error_z
+         integral_z += error_z
          
          power_difference = error_x*Px_coef + integral_x*Ix_coef + integral_x*Dx_coef
-       #  d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
+         d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
          
-       #  speed += d_speed
-       #  print("speed ", speed)
+         speed += d_speed
+         print("speed ", speed)
          print("x error ", error_x)
          print("pwr diff ", power_difference)         
 
-        # if (speed > maximum_speed):
-        #    speed = maximum_speed
-        # if (speed < 0):
-        #    speed = 0
+         if (speed > maximum_speed):
+            speed = maximum_speed
+         if (speed < 0):
+            speed = 0
          
          if power_difference > speed:
             power_difference = speed
@@ -134,8 +157,12 @@ if __name__ == '__main__':
             Ab.setPWMA(speed)
             Ab.setPWMB(speed - power_difference)
          
+         if(error_z <= 0):
+            Ab.stop()
+         elif(last_error_z <= 0 and error_z > 0):
+            Ab.forward()
          last_error_x = error_x
-        # last_error_z = error_z
+         last_error_z = error_z
             
          code_time = time.time() - start_code_time
          print("time " + str(code_time))
