@@ -52,16 +52,7 @@ def toRedis(r,a,n,fnum):
    return
 
 if __name__ == '__main__':
-   if not os.path.exists('calibration.pckl'):
-      print("You need to calibrate the camera you'll be using. See calibration script.")
-      exit()
-   else:
-      f = open('calibration.pckl', 'rb')
-      cameraMatrix, distCoeffs = pickle.load(f)
-      f.close()
-      if cameraMatrix is None or distCoeffs is None:
-         print("Calibration issue. Remove ./calibration.pckl and recalibrate your camera")
-         exit()
+   
    aruco_dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
    parameters = cv2.aruco.DetectorParameters_create()
    r = redis.Redis('140.182.152.14', port=6379, db=0)
@@ -86,7 +77,8 @@ if __name__ == '__main__':
    integral_z = 0
    
    maximum_speed = 75
-   speed = 0
+   speed = 30
+   midPoint = 0
    
    
    while(True):
@@ -101,35 +93,35 @@ if __name__ == '__main__':
    		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=corners, ids=ids, borderColor=(0, 255, 0))
    		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=rejected_corners, borderColor=(0, 0, 255))
    		#cv2.imshow('frame', frame)
+         key = cv2.waitKey(1) & 0xFF
+         toRedis(r, img, 'latest',count)
+         count += 1
+         print(count)
+         #print(corners)
          if ids is not None:
-            rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(corners, .042 , cameraMatrix, distCoeffs)
-            for rvec, tvec in zip(rvecs, tvecs):
-               cv2.aruco.drawAxis(img, cameraMatrix, distCoeffs, rvec, tvec, .030)
-            key = cv2.waitKey(1) & 0xFF
-            toRedis(r, img, 'latest',count)
-            count += 1
-            print(count)
-         error_x = tvecs[0][0][0]
-         error_z = tvecs[0][0][2] - target_distance
+            midPoint = (corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0])/4
+         
+         error_x = midPoint - 160
+       #  error_z = tvecs[0][0][2] - target_distance
          
          derivative_x = error_x - last_error_x
          integral_x += error_x
          
-         derivative_z = error_z - last_error_z
-         integral_z += error_z
+       #  derivative_z = error_z - last_error_z
+       #  integral_z += error_z
          
          power_difference = error_x*Px_coef + integral_x*Ix_coef + integral_x*Dx_coef
-         d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
+       #  d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
          
-         speed += d_speed
-         print("speed ", speed)
+       #  speed += d_speed
+       #  print("speed ", speed)
          print("x error ", error_x)
          print("pwr diff ", power_difference)         
 
-         if (speed > maximum_speed):
-            speed = maximum_speed
-         if (speed < 0):
-            speed = 0
+        # if (speed > maximum_speed):
+        #    speed = maximum_speed
+        # if (speed < 0):
+        #    speed = 0
          
          if power_difference > speed:
             power_difference = speed
@@ -143,7 +135,7 @@ if __name__ == '__main__':
             Ab.setPWMB(speed - power_difference)
          
          last_error_x = error_x
-         last_error_z = error_z
+        # last_error_z = error_z
             
          code_time = time.time() - start_code_time
          print("time " + str(code_time))
