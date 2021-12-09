@@ -5,12 +5,29 @@ import numpy as np
 import pickle
 import os
 import time
-
+import RPi.GPIO as GPIO
 from Alphabot2 import AlphaBot2
 import curses
 
 
 Ab = AlphaBot2()
+
+DR = 16
+DL = 19
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(DR, GPIO.IN, GPIO.PUD_UP)
+GPIO.setup(DL, GPIO.IN, GPIO.PUD_UP)
+
+def obstacle():
+   DR_status = GPIO.input(DR)
+   DL_status = GPIO.input(DL)
+#        print(DR_status,DL_status)
+   if((DL_status == 0) or (DR_status == 0)):
+      return True;
+   else:
+      return False; 
 
 def main(stdscr):
    Ab.setPWMA(10)
@@ -75,9 +92,9 @@ if __name__ == '__main__':
    error_z = 0
    last_error_x = error_x
    last_error_z = error_z
-   Px_coef = 100
+   Px_coef = .1
    Ix_coef = 0
-   Dx_coef = 0
+   Dx_coef = 3
    
    Pz_coef = 1
    Iz_coef = 0
@@ -85,7 +102,8 @@ if __name__ == '__main__':
    integral_x = 0 
    integral_z = 0
    
-   maximum_speed = 75
+   midPoint = 0
+   maximum_speed = 25
    speed = 0
    
    
@@ -103,13 +121,16 @@ if __name__ == '__main__':
    		#cv2.imshow('frame', frame)
          if ids is not None:
             rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(corners, .042 , cameraMatrix, distCoeffs)
+            midPoint = (corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0])/4
             for rvec, tvec in zip(rvecs, tvecs):
                cv2.aruco.drawAxis(img, cameraMatrix, distCoeffs, rvec, tvec, .030)
             key = cv2.waitKey(1) & 0xFF
             toRedis(r, img, 'latest',count)
             count += 1
             print(count)
-         error_x = tvecs[0][0][0]
+         error_x = midPoint - 160
+         if(error_x > -5 and error_x < 5):
+            error_x = 0
          error_z = tvecs[0][0][2] - target_distance
          
          derivative_x = error_x - last_error_x
@@ -130,6 +151,11 @@ if __name__ == '__main__':
             speed = maximum_speed
          if (speed < 0):
             speed = 0
+         if (obstacle()):
+            print("stop!!!!!!!!!!!!!")
+            #Ab.stop()
+            #break;
+         
          
          if power_difference > speed:
             power_difference = speed
@@ -142,9 +168,17 @@ if __name__ == '__main__':
             Ab.setPWMA(speed)
             Ab.setPWMB(speed - power_difference)
          
+         if(error_z <= -.45):
+            Ab.stop()
+         elif(last_error_z <= -.45 and error_z > -.45):
+            Ab.forward()
          last_error_x = error_x
          last_error_z = error_z
             
          code_time = time.time() - start_code_time
-         print("time " + str(code_time))
+         sleep_time = .008-code_time
+         if sleep_time > 0:
+            time.sleep(0.008-code_time)
+         else:
+            print(code_time)
         # time.sleep(0.008-code_time)

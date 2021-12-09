@@ -70,7 +70,7 @@ def toRedis(r,a,n,fnum):
    return
 
 if __name__ == '__main__':
-   
+      
    aruco_dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
    parameters = cv2.aruco.DetectorParameters_create()
    r = redis.Redis('140.182.152.14', port=6379, db=0)
