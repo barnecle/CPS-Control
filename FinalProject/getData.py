@@ -19,7 +19,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(DR, GPIO.IN, GPIO.PUD_UP)
 GPIO.setup(DL, GPIO.IN, GPIO.PUD_UP)
-GPIO.setup(Button,GPIO.IN,GPIO.PUD_UP)
+#GPIO.setup(Button,GPIO.IN,GPIO.PUD_UP)
 
 def obstacle():
    DR_status = GPIO.input(DR)
@@ -110,8 +110,8 @@ if __name__ == '__main__':
    pwm_L = 0
    pwm_R = 0  
 
-   file = open("P_1/"+str(P_coef)+"__I_1/"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
-   file.write("iteration, error, time, P-term, I-term, D-term, left PWM, right PWM\n")
+   file = open("PID.csv","w")
+   file.write("iteration, error-x, error-z, time, Px-term, Ix-term, Dx-term,Pz-term, Iz-term, Dz-term, left PWM, right PWM\n")
    file_array = []
    
    while(True):
@@ -151,12 +151,23 @@ if __name__ == '__main__':
          
          derivative_z = error_z - last_error_z
          integral_z += error_z
-         
-         power_difference = error_x*Px_coef + integral_x*Ix_coef + derivative_x*Dx_coef
+           
+         Px = error_x*Px_coef 
+         Ix = integral_x*Ix_coef
+         Dx = derivative_x*Dx_coef
+
+ 
+         power_difference = Px + Ix + Dx
          if(error_z<0):
-            d_speed = error_z*neg_Pzc + integral_z*Iz_coef + derivative_z*Dz_coef
+            Pz = error_z*neg_Pzc
+            Iz = integral_z*Iz_coef
+            Dz = derivative_z*Dz_coef
+            d_speed = Pz + Iz + Dz
          else:
-            d_speed = error_z*Pz_coef + integral_z*Iz_coef + derivative_z*Dz_coef
+            Pz = error_z*Pz_coef
+            Iz = integral_z*Iz_coef
+            Dz = derivative_z*Dz_coef
+            d_speed = Pz + Iz + Dz
          speed += d_speed
          print("speed ", speed)
          print("x error ", error_x)
@@ -198,13 +209,18 @@ if __name__ == '__main__':
          last_error_x = error_x
          last_error_z = error_z
             
-         if GPIO.input(Button) != 0:
-            break
+ #        if GPIO.input(Button) != 0:
+ #           print("here 2")
+ #           break
+            
 
          code_time = time.time() - start_code_time
          sleep_time = .05-code_time
-         if count < 2000:
-            file_array += [str(count)+", " + str(error_x)+", "+str(code_time)+", "+ str(Px_coeff) +", "+ str(Ix_coeff)+", "+ str(Dx_coeff)+", "+str(Pz_coeff) +str(neg_Pzc) +", "+ str(Iz_coeff)+", "+ str(Dz_coeff)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n"]
+         if count < 500:
+            file_array += [str(count)+", " + str(error_x)+"," + str(error_z)+","+str(code_time)+", "+ str(Px) +", "+ str(Ix)+", "+ str(Dx)+", "+str(Pz)+"," + str(Iz)+", "+ str(Dz)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n"]
+         else:
+            print("here")
+            break;
 
          if sleep_time > 0:
             time.sleep(sleep_time)
