@@ -8,7 +8,7 @@ import time
 import RPi.GPIO as GPIO
 from Alphabot2 import AlphaBot2
 import curses
-
+Button = 7
 
 Ab = AlphaBot2()
 
@@ -19,6 +19,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(DR, GPIO.IN, GPIO.PUD_UP)
 GPIO.setup(DL, GPIO.IN, GPIO.PUD_UP)
+GPIO.setup(Button,GPIO.IN,GPIO.PUD_UP)
 
 def obstacle():
    DR_status = GPIO.input(DR)
@@ -106,7 +107,12 @@ if __name__ == '__main__':
    midPoint = 0
    maximum_speed = 35
    speed = 0
-   
+   pwm_L = 0
+   pwm_R = 0  
+
+   file = open("P_1/"+str(P_coef)+"__I_1/"+str(I_coef)+"__D_"+str(D_coef)+".csv","w")
+   file.write("iteration, error, time, P-term, I-term, D-term, left PWM, right PWM\n")
+   file_array = []
    
    while(True):
       curses.wrapper(main)
@@ -176,10 +182,15 @@ if __name__ == '__main__':
          if power_difference < 0:
             Ab.setPWMA(speed + power_difference)
             Ab.setPWMB(speed)
+            pwm_L = speed + power_difference
+            pwm_R = speed
+
          else:
             Ab.setPWMA(speed)
             Ab.setPWMB(speed - power_difference)
-         
+            pwm_L = speed
+            pwm_R = speed - power_difference
+
 #         if(error_z <= -.45):
 #            Ab.stop()
 #         elif(last_error_z <= -.45 and error_z > -.45):
@@ -187,15 +198,19 @@ if __name__ == '__main__':
          last_error_x = error_x
          last_error_z = error_z
             
-         k = cv2.waitKey(1) & 0xFF
-    # press 'q' to exit
-         if k == ord('q'):
+         if GPIO.input(Button) != 0:
             break
+
          code_time = time.time() - start_code_time
          sleep_time = .05-code_time
-         
+         if count < 2000:
+            file_array += [str(count)+", " + str(error_x)+", "+str(code_time)+", "+ str(Px_coeff) +", "+ str(Ix_coeff)+", "+ str(Dx_coeff)+", "+str(Pz_coeff) +str(neg_Pzc) +", "+ str(Iz_coeff)+", "+ str(Dz_coeff)+", "+ str(pwm_L)+", "+ str(pwm_R)+"\n"]
+
          if sleep_time > 0:
             time.sleep(sleep_time)
          else:
             print(code_time)
          #time.sleep(0.008-code_time)
+      for i in file_array:
+         file.write(i)
+      file.close()
