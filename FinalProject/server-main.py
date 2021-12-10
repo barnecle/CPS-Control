@@ -92,9 +92,9 @@ if __name__ == '__main__':
    error_z = 0
    last_error_x = error_x
    last_error_z = error_z
-   Px_coef = .1
+   Px_coef = .05
    Ix_coef = 0
-   Dx_coef = 3
+   Dx_coef = .2
    
    Pz_coef = 1
    Iz_coef = 0
@@ -116,31 +116,36 @@ if __name__ == '__main__':
          ret, img = cam.read()
          gray_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
          corners, ids, rejected_corners = cv2.aruco.detectMarkers(gray_frame, aruco_dictionary, parameters=parameters)
-   		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=corners, ids=ids, borderColor=(0, 255, 0))
+#         img = cv2.aruco.drawDetectedMarkers(image=img, corners=corners, ids=ids, borderColor=(0, 255, 0))
    		#img = cv2.aruco.drawDetectedMarkers(image=img, corners=rejected_corners, borderColor=(0, 0, 255))
    		#cv2.imshow('frame', frame)
-         if ids is not None:
-            rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(corners, .042 , cameraMatrix, distCoeffs)
+         if ids is not None: #.042 for paper, .027 for car
+            rvecs, tvecs = cv2.aruco.estimatePoseSingleMarkers(corners, .027 , cameraMatrix, distCoeffs)
             midPoint = (corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0])/4
-            for rvec, tvec in zip(rvecs, tvecs):
-               cv2.aruco.drawAxis(img, cameraMatrix, distCoeffs, rvec, tvec, .030)
-            key = cv2.waitKey(1) & 0xFF
+   #         for rvec, tvec in zip(rvecs, tvecs):
+   #            cv2.aruco.drawAxis(img, cameraMatrix, distCoeffs, rvec, tvec, .030)
+            #key = cv2.waitKey(1) & 0xFF
             toRedis(r, img, 'latest',count)
             count += 1
             print(count)
-         error_x = midPoint - 160
-         if(error_x > -5 and error_x < 5):
+            error_x = midPoint - 160
+            if(error_x > -20 and error_x < 20):
+               error_x = 0
+            error_z = tvecs[0][0][2] - target_distance
+
+         else: #go straight, slow down
+            error_z = -1
             error_x = 0
-         error_z = tvecs[0][0][2] - target_distance
-         
+            continue
+          
          derivative_x = error_x - last_error_x
          integral_x += error_x
          
          derivative_z = error_z - last_error_z
          integral_z += error_z
          
-         power_difference = error_x*Px_coef + integral_x*Ix_coef + integral_x*Dx_coef
-         d_speed = error_z*Pz_coef + integral_z*Iz_coef + integral_z*Dz_coef
+         power_difference = error_x*Px_coef + integral_x*Ix_coef + derivative_x*Dx_coef
+         d_speed = error_z*Pz_coef + integral_z*Iz_coef + derivative_z*Dz_coef
          
          speed += d_speed
          print("speed ", speed)
@@ -153,8 +158,10 @@ if __name__ == '__main__':
             speed = 0
          if (obstacle()):
             print("stop!!!!!!!!!!!!!")
-            #Ab.stop()
+            Ab.stop()
             #break;
+         else:
+            Ab.forward()
          
          
          if power_difference > speed:
@@ -168,15 +175,20 @@ if __name__ == '__main__':
             Ab.setPWMA(speed)
             Ab.setPWMB(speed - power_difference)
          
-         if(error_z <= -.45):
-            Ab.stop()
-         elif(last_error_z <= -.45 and error_z > -.45):
-            Ab.forward()
+#         if(error_z <= -.45):
+#            Ab.stop()
+#         elif(last_error_z <= -.45 and error_z > -.45):
+           # Ab.forward()
          last_error_x = error_x
          last_error_z = error_z
             
+         k = cv2.waitKey(1) & 0xFF
+    # press 'q' to exit
+         if k == ord('q'):
+            break
          code_time = time.time() - start_code_time
          sleep_time = .008-code_time
+         
          if sleep_time > 0:
             time.sleep(0.008-code_time)
          else:
